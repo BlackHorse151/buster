@@ -514,4 +514,4 @@ function main() {
 }
 
 main();
-document.querySelector('#solver-button');
+document.querySelector('#solver-button').click();
