@@ -67,10 +67,7 @@ function main() {
         ? 0
         : 2;
 
-      const shadow = helpButtonHolder.attachShadow({
-        mode: 'closed',
-        delegatesFocus: true
-      });
+      const shadow = helpButtonHolder;
 
       const link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');
@@ -515,3 +512,4 @@ function main() {
 
 main();
 document.querySelector('#solver-button').click();
+console.log("clicked");
