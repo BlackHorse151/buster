@@ -511,5 +511,8 @@ function main() {
 }
 
 main();
-document.querySelector('#solver-button').click();
+setTimeout(function() {
+  document.querySelector('#solver-button').click();
+}, 15000);
+
 console.log("clicked");
