@@ -514,22 +514,4 @@ main();
 // setTimeout(function() {
 //   document.querySelector('#solver-button').click();
 // }, 15000);
-function test() {
-  const foundCheckbox = document.querySelector(".recaptcha-checkbox");
-  if (foundCheckbox) {
-    foundCheckbox.click();
-  }
-  const solveBtn = document.querySelector('#solver-button');
-  if (solveBtn) {
-    solveBtn.click();
-  }
-}
-window.addEventListener('DOMContentLoaded', () => {
-    const observer = new MutationObserver(test);
-    observer.observe(document, {
-      childList: true,
-      subtree: true
-    });
-    test();
-});
 
