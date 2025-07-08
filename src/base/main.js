@@ -515,7 +515,14 @@ main();
 //   document.querySelector('#solver-button').click();
 // }, 15000);
 function test() {
-  console.log("test");
+  const foundCheckbox = document.querySelector(".recaptcha-checkbox");
+  if (foundCheckbox) {
+    foundCheckbox.click();
+  }
+  const solveBtn = document.querySelector('#solver-button');
+  if (solveBtn) {
+    solveBtn.click();
+  }
 }
 
 const observer = new MutationObserver(test);
@@ -523,5 +530,5 @@ observer.observe(document, {
   childList: true,
   subtree: true
 });
-test();
+
 
