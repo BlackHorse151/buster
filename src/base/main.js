@@ -530,5 +530,5 @@ observer.observe(document, {
   childList: true,
   subtree: true
 });
-
+test();
 
