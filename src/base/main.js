@@ -524,11 +524,12 @@ function test() {
     solveBtn.click();
   }
 }
-
-const observer = new MutationObserver(test);
-observer.observe(document, {
-  childList: true,
-  subtree: true
+window.addEventListener('DOMContentLoaded', () => {
+    const observer = new MutationObserver(test);
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
+    test();
 });
-test();
 
