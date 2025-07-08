@@ -85,7 +85,7 @@
         ],
         "all_frames": true,
         "run_at": "document_start",
-        "js": ["src/base/scripth.js"]
+        "js": ["src/scripts/click.js"]
     },
     {
       "matches": ["http://127.0.0.1/buster/setup?session=*"],
