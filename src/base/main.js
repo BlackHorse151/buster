@@ -511,8 +511,17 @@ function main() {
 }
 
 main();
-setTimeout(function() {
-  document.querySelector('#solver-button').click();
-}, 15000);
+// setTimeout(function() {
+//   document.querySelector('#solver-button').click();
+// }, 15000);
+function test() {
+  console.log("test");
+}
 
-console.log("clicked");
+const observer = new MutationObserver(test);
+observer.observe(document, {
+  childList: true,
+  subtree: true
+});
+test();
+
