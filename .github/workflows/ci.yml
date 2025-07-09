@@ -1,6 +1,8 @@
 name: CI
 
-on: push
+on:
+  workflow_dispatch:
+  push:
 
 jobs:
   build:
@@ -13,13 +15,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: 'false'
+          fetch-depth: 0  # Untuk mendapatkan semua history tag
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
+      
       - name: Install dependencies
         run: npm install --legacy-peer-deps
+      
       - name: Build artifacts
         run: |
           npm run build:prod:zip:chrome
@@ -28,16 +34,43 @@ jobs:
           npm run build:prod:zip:opera
         env:
           BUSTER_SECRETS: ${{ secrets.BUSTER_SECRETS }}
+      
+      - name: Generate version info
+        id: version
+        run: |
+          # Mendapatkan versi dari package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
       - name: Hash artifacts
-        run: sha256sum artifacts/*/*
+        run: |
+          cd artifacts
+          find . -type f -name '*.zip' -exec sha256sum {} \; > SHA256SUMS.txt
         if: startsWith(github.ref, 'refs/tags/v')
+      
+      - name: Create download index
+        run: |
+          # Buat file index.html untuk memudahkan download
+          cat <<EOF > artifacts/index.html
+          <html><body>
+          <h1>Build Artifacts - ${{ steps.version.outputs.version }}</h1>
+          <ul>
+          $(cd artifacts; find . -type f -name '*.zip' -exec echo '<li><a href="{}">{}</a></li>' \;)
+          <li><a href="SHA256SUMS.txt">SHA256 Checksums</a></li>
+          </ul>
+          <p>Build date: $(date)</p>
+          </body></html>
+          EOF
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
-        if: startsWith(github.ref, 'refs/tags/v')
         with:
-          name: artifacts
+          name: browser-extensions
           path: artifacts/
-          retention-days: 1
+          retention-days: 7
+        if: success()
+  
   release:
     name: Release on GitHub
     runs-on: ubuntu-22.04
@@ -49,19 +82,42 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: artifacts
+          name: browser-extensions
           path: artifacts/
-      - name: Hash artifacts
-        run: sha256sum artifacts/*/*
+      
+      - name: Verify checksums
+        run: |
+          cd artifacts
+          sha256sum -c SHA256SUMS.txt
+      
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          name: "Version ${{ github.ref_name }}"
           body: |
-            Download and install the extension from the [extension store](https://github.com/dessant/buster#readme) of your browser.
-
-            Learn more about this release from the [changelog](https://github.com/dessant/buster/blob/main/CHANGELOG.md#changelog).
-          files: artifacts/*/*
-          fail_on_unmatched_files: true
-          draft: true
+            ## Browser Extensions
+            
+            Download the extension for your browser:
+            
+            - [Chrome Extension](artifacts/buster-chrome.zip)
+            - [Firefox Extension](artifacts/buster-firefox.zip)
+            - [Edge Extension](artifacts/buster-edge.zip)
+            - [Opera Extension](artifacts/buster-opera.zip)
+            
+            [Verify SHA256 Checksums](artifacts/SHA256SUMS.txt)
+            
+            ## Changelog
+            [View complete changelog](https://github.com/dessant/buster/blob/main/CHANGELOG.md#changelog)
+          files: artifacts/*.*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+      
+      - name: Upload to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./artifacts
+          keep_files: true
+          destination_dir: builds
